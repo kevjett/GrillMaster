@@ -2,26 +2,27 @@ using System;
 
 namespace GrillMaster
 {
-    public class GrillController
+    public static class GrillController
     {
-        private int _tempMeasurePeriod = 1000;
-        private int _tempAvgCount = 8;
-        private long _lastTempRead;
-        private int _periodCounter;
-        public TempProbe[] Probes { get; private set; }
+        private static long _lastTempRead = 0;
+        private static int _periodCounter = 0;
+        public static TempProbe[] Probes;
 
-        public GrillController(TempProbe[] probes)
+        public static void Initialize()
         {
-            _lastTempRead = 0;
-            _periodCounter = 0;
-            Probes = probes;
+            Probes = new TempProbe[Config.Probes.Count];
+            foreach (Config.ProbeType key in Config.Probes.Keys)
+            {
+                var probe = (TempProbe) Config.Probes[key];
+                Probes[(int) probe.ProbeType] = probe;
+            }
         }
 
-        public bool DoWork()
+        public static bool DoWork()
         {
             var m = DateTime.Now.Ticks;
             var elapsed = m - _lastTempRead;
-            if ((elapsed/TimeSpan.TicksPerMillisecond) < (_tempMeasurePeriod / _tempAvgCount))
+            if ((elapsed/TimeSpan.TicksPerMillisecond) < (Config.TempMeasurePeriod / Config.TempAverageCount))
                 return false;
             _lastTempRead = m;
 
@@ -29,7 +30,7 @@ namespace GrillMaster
                 Probes[i].ReadTemp();
   
             ++_periodCounter;
-            if (_periodCounter < _tempAvgCount)
+            if (_periodCounter < Config.TempAverageCount)
                 return false;
 
             for (var i = 0; i < Probes.Length; i++)
