@@ -4,43 +4,76 @@ using GHI.OSHW.Hardware;
 using Microsoft.SPOT;
 using Microsoft.SPOT.Hardware;
 
-namespace GrillMaster
+namespace GrillMaster 
 {
     public class Program
     {
-        private static GrillController grill;
-        private static readonly OutputPort _onboardLed = new OutputPort((Cpu.Pin)FEZCerbuino.Pin.Digital.LED1, true);
-
+        public static long LastActivity { get; private set; }
+        public static long StartTime { get; private set; }
+        public static long CurrentTime { get { return (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond); } }
+        public static long Elapsed { get { return CurrentTime - LastActivity; } }
         public static void Main()
         {
-            var probes = new TempProbe[1];
-            probes[0] = new TempProbe("Food 1", FEZCerbuino.Pin.AnalogIn.A0);
+            Initialize();
 
-            grill = new GrillController(probes);
-            var timer = new Timer(LedBlink, null, 0, 1000);
             while (true)
             {
-                if (grill.DoWork())
+                Menu.DoWork();
+                if (GrillController.DoWork())
                     NewTempAvailable();
             }
         }
 
-        static void LedBlink(object o)
+        static void Initialize()
         {
-            _onboardLed.Write(!_onboardLed.Read());
+            Config.Initialize();
+            BlinkLed(); //boot completed
+
+            StartTime = CurrentTime;
+            GrillController.Initialize();
+            Menu.SetState(MenuState.Welcome);
+
+            BlinkLed(); //initialize completed
+        }
+
+        static void BlinkLed()
+        {
+            Config.Pins.OnboardLed.Write(true);
+            Thread.Sleep(350);
+            Config.Pins.OnboardLed.Write(false);
+            Thread.Sleep(50);
         }
 
         private static void NewTempAvailable()
         {
+            Debug.Print("--NewTempAvailable");
             UpdateDisplay();
         }
 
         private static void UpdateDisplay()
         {
-            for (int i = 0; i < grill.Probes.Length; i++)
+            Debug.Print("--Update Display");
+            MenuState state = Menu.GetState();
+            if (state == MenuState.Welcome)
             {
-                Debug.Print(grill.Probes[i].Name + ": " + grill.Probes[i].TemperatureF.ToString("N0"));
+                if (CurrentTime-StartTime<5000)
+                    Thread.Sleep((int)(5000 - (CurrentTime - StartTime)));
+                //Menu.SetState(MenuState.Pit);
+                //return;
             }
+
+            for (int i = 0; i < GrillController.Probes.Length; i++)
+            {
+                if (GrillController.Probes[i].HasTemperature)
+                    Debug.Print(GrillController.Probes[i].Name + ": " + GrillController.Probes[i].TemperatureF.ToString("N0"));
+                else
+                    Debug.Print(GrillController.Probes[i].Name + ": Not plugged in");
+            }
+        }
+
+        public static void UpdateLastActivity()
+        {
+            LastActivity = CurrentTime;
         }
     }
 }

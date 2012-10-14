@@ -14,11 +14,13 @@ namespace GrillMaster
         public double TemperatureFAvg { get; private set; }
         public bool HasTemperature { get { return TemperatureF >= 0; } }
         public string Name { get; private set; }
+        public Config.ProbeType ProbeType { get; private set; }
 
-        public TempProbe(string name, Cpu.AnalogChannel pin)
+        public TempProbe(string name, Config.ProbeType probeType, AnalogInput input)
         {
             Name = name;
-            _aInput = new AnalogInput(pin);
+            ProbeType = probeType;
+            _aInput = input;
             _accumulator = 0;
             _accumulatedCount = 0;
             TemperatureF = -1;
@@ -54,7 +56,7 @@ namespace GrillMaster
                 int ADCval = _accumulator / _accumulatedCount;
                 _accumulatedCount = 0;
 
-                if (ADCval != 0)  // Vout >= MAX is reduced in readTemp()
+                if (ADCval != 0 && ADCval < 4020)  // Vout >= MAX is reduced in readTemp()
                 {
                     double R;
                     double T;
