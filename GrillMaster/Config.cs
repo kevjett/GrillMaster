@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
+using System.Threading;
 using GHI.OSHW.Hardware;
+using MicroLiquidCrystal;
 using Microsoft.SPOT;
 using Microsoft.SPOT.Hardware;
 
@@ -21,6 +23,8 @@ namespace GrillMaster
             public static OutputPort OnboardLed;
         }
 
+        public static Lcd Lcd;
+
         public static Hashtable Probes;
         public static Hashtable Menus;
 
@@ -32,6 +36,17 @@ namespace GrillMaster
             Pins.ProbePit = new AnalogInput(FEZCerbuino.Pin.AnalogIn.A0);
             Pins.ProbeFood1 = new AnalogInput(FEZCerbuino.Pin.AnalogIn.A1);
             Pins.OnboardLed = new OutputPort(FEZCerbuino.Pin.Digital.LED1, false);
+
+            var lcdProvider = new GpioLcdTransferProvider(
+                FEZCerbuino.Pin.Digital.D12,  // RS
+                FEZCerbuino.Pin.Digital.D11, //Pins.GPIO_PIN_D11,  // enable
+                FEZCerbuino.Pin.Digital.D2,  //d4
+                FEZCerbuino.Pin.Digital.D3,  //d5
+                FEZCerbuino.Pin.Digital.D4,  //d6
+                FEZCerbuino.Pin.Digital.D5); // d7
+
+            Lcd = new Lcd(lcdProvider);
+            Lcd.Begin(16, 2);
 
             Probes = new Hashtable() {
                 { ProbeType.Pit, new TempProbe("Pit", ProbeType.Pit, Pins.ProbePit)},

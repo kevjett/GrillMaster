@@ -88,15 +88,10 @@ namespace GrillMaster
 
         private static void ShowWelcome()
         {
-            Debug.Print("Show Welcome");
-            //DisplayWelcome for 
-            for (int i = 0; i < 5; i++)
-            {
-                Config.Pins.OnboardLed.Write(true);
-                Thread.Sleep(100);
-                Config.Pins.OnboardLed.Write(false);
-                Thread.Sleep(100);
-            }
+            Debug.Print("Welcome Kevin");
+            //Config.Lcd.Write("Hello, world!");
+            Config.Lcd.SetCursorPosition(0, 1);
+            Config.Lcd.Write("Welcome Kevin");
         }
 
         private static void ShowFood(Config.ProbeType probeType)

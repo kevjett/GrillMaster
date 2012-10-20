@@ -31,7 +31,10 @@
   <Import Project="$(NetMfTargetsBaseDir)$(TargetFrameworkVersion)\CSharp.Targets" />
   <ItemGroup>
     <Compile Include="Config.cs" />
+    <Compile Include="GpioLcdTransferProvider.cs" />
     <Compile Include="GrillController.cs" />
+    <Compile Include="ILcdTransferProvider.cs" />
+    <Compile Include="Lcd.cs" />
     <Compile Include="Menu.cs" />
     <Compile Include="MenuPage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
