@@ -56,18 +56,40 @@ namespace GrillMaster
             MenuState state = Menu.GetState();
             if (state == MenuState.Welcome)
             {
-                if (CurrentTime-StartTime<5000)
-                    Thread.Sleep((int)(5000 - (CurrentTime - StartTime)));
-                //Menu.SetState(MenuState.Pit);
-                //return;
+                if (CurrentTime - StartTime < (Config.WelcomeWait * 1000))
+                {
+                    Debug.Print("Waiting for welcome");
+                    Thread.Sleep((int) ((Config.WelcomeWait*1000) - (CurrentTime - StartTime)));
+                }
+                Config.Lcd.Clear();
+                Menu.SetState(MenuState.ShowTemps);
+                return;
             }
 
-            for (int i = 0; i < GrillController.Probes.Length; i++)
+            if (state == MenuState.ShowTemps)
             {
-                if (GrillController.Probes[i].HasTemperature)
-                    Debug.Print(GrillController.Probes[i].Name + ": " + GrillController.Probes[i].TemperatureF.ToString("N0"));
-                else
-                    Debug.Print(GrillController.Probes[i].Name + ": Not plugged in");
+                for (var i = 0; i < 2; i++)
+                {
+                    Config.Lcd.SetCursorPosition(0, i);
+                    var probe = GrillController.Probes[i];
+                    if (probe.HasTemperature)
+                    {
+                        var text = probe.Name + ":" + probe.TemperatureF.ToString("N0") + "F [N]";
+                        Debug.Print(text);
+                        Config.Lcd.WriteLine(text);
+                    }
+                    else
+                    {
+                        var text = probe.Name + ":NaN [N]";
+                        Debug.Print(text);
+                        Config.Lcd.WriteLine(text);
+                    }
+                }
+
+                Config.Lcd.SetCursorPosition(15, 0);
+                //if (GrillController.IsFanRunning) {
+                Config.Lcd.Write("*");
+                Config.Pins.Fan.Write(true);
             }
         }
 

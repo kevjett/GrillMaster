@@ -8,10 +8,11 @@ namespace GrillMaster
     {
         None,
         Welcome,
-        SetTemp_Pit,
-        SetTemp_Food1,
-        Food1,
         Pit,
+        SetTemp_Pit,
+        Food1,
+        SetTemp_Food1,
+        ShowTemps,
         Reports,
         Report_Pit
     }
@@ -71,11 +72,8 @@ namespace GrillMaster
                 case MenuState.Welcome:
                     ShowWelcome();
                     break;
-                case MenuState.Food1:
-                    ShowFood(Config.ProbeType.Food1);
-                    break;
-                case MenuState.Pit:
-                    ShowFood(Config.ProbeType.Pit);
+                case MenuState.ShowTemps:
+                    ShowFood();
                     break;
                 case MenuState.None:
                 default:
@@ -89,14 +87,14 @@ namespace GrillMaster
         private static void ShowWelcome()
         {
             Debug.Print("Welcome Kevin");
-            //Config.Lcd.Write("Hello, world!");
+            Config.Lcd.WriteLine("Welcome Kevin");
             Config.Lcd.SetCursorPosition(0, 1);
-            Config.Lcd.Write("Welcome Kevin");
+            Config.Lcd.WriteLine("Happy Grilling!");
         }
 
-        private static void ShowFood(Config.ProbeType probeType)
+        private static void ShowFood()
         {
-            Debug.Print("Show Food:"+probeType.ToString());
+            //Debug.Print("Show Food:"+probeType.ToString());
         }
     }
 }

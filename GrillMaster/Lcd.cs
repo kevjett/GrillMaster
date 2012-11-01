@@ -326,6 +326,25 @@ namespace MicroLiquidCrystal
         /// Writes a text to the LCD.
         /// </summary>
         /// <param name="text">The string to write.</param>
+        public void WriteLine(string text)
+        {
+            if (text.Length<_numColumns)
+            {
+                var adds = _numColumns - text.Length;
+                for (var i = 0; i < adds; i++)
+                {
+                    text += " ";
+                }
+            }
+                
+            byte[] buffer = Encoding.GetBytes(text);
+            Write(buffer, 0, buffer.Length);
+        }
+
+        /// <summary>
+        /// Writes a text to the LCD.
+        /// </summary>
+        /// <param name="text">The string to write.</param>
         public void Write(string text)
         {
             byte[] buffer = Encoding.GetBytes(text);

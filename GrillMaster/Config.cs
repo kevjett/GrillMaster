@@ -10,6 +10,8 @@ namespace GrillMaster
 {
     public static class Config
     {
+        public const int WelcomeWait = 10; //secs to wait for welcome
+
         public enum ProbeType
         {
             Pit = 0,
@@ -21,6 +23,7 @@ namespace GrillMaster
             public static AnalogInput ProbePit;
             public static AnalogInput ProbeFood1;
             public static OutputPort OnboardLed;
+            public static OutputPort Fan;
         }
 
         public static Lcd Lcd;
@@ -36,21 +39,22 @@ namespace GrillMaster
             Pins.ProbePit = new AnalogInput(FEZCerbuino.Pin.AnalogIn.A0);
             Pins.ProbeFood1 = new AnalogInput(FEZCerbuino.Pin.AnalogIn.A1);
             Pins.OnboardLed = new OutputPort(FEZCerbuino.Pin.Digital.LED1, false);
+            Pins.Fan = new OutputPort(FEZCerbuino.Pin.Digital.D0, false);
 
             var lcdProvider = new GpioLcdTransferProvider(
                 FEZCerbuino.Pin.Digital.D12,  // RS
                 FEZCerbuino.Pin.Digital.D11, //Pins.GPIO_PIN_D11,  // enable
-                FEZCerbuino.Pin.Digital.D2,  //d4
-                FEZCerbuino.Pin.Digital.D3,  //d5
-                FEZCerbuino.Pin.Digital.D4,  //d6
-                FEZCerbuino.Pin.Digital.D5); // d7
+                FEZCerbuino.Pin.Digital.D5,  //d4
+                FEZCerbuino.Pin.Digital.D4,  //d5
+                FEZCerbuino.Pin.Digital.D3,  //d6
+                FEZCerbuino.Pin.Digital.D2); // d7
 
             Lcd = new Lcd(lcdProvider);
             Lcd.Begin(16, 2);
 
             Probes = new Hashtable() {
                 { ProbeType.Pit, new TempProbe("Pit", ProbeType.Pit, Pins.ProbePit)},
-                { ProbeType.Food1, new TempProbe("Food 1", ProbeType.Food1, Pins.ProbeFood1) }
+                { ProbeType.Food1, new TempProbe("Food", ProbeType.Food1, Pins.ProbeFood1) }
             };
 
             Menus = new Hashtable() {
@@ -63,22 +67,26 @@ namespace GrillMaster
                         .AddBtn(Button.Up, MenuState.SetTemp_Food1)
                         .AddBtn(Button.Down, MenuState.SetTemp_Food1)
                         .AddBtn(Button.Middle, MenuState.SetTemp_Food1) },
-                { MenuState.Food1, new MenuPage(MenuState.Food1)
+                { MenuState.ShowTemps, new MenuPage(MenuState.ShowTemps)
                         .AddBtn(Button.Up, MenuState.Reports)
                         .AddBtn(Button.Down, MenuState.Pit)
-                        .AddBtn(Button.Middle, MenuState.SetTemp_Food1) },
-                { MenuState.Pit, new MenuPage(MenuState.Pit)
-                        .AddBtn(Button.Up, MenuState.Food1)
-                        .AddBtn(Button.Down, MenuState.Reports)
                         .AddBtn(Button.Middle, MenuState.SetTemp_Pit) },
-                { MenuState.Reports, new MenuPage(MenuState.Reports)
-                        .AddBtn(Button.Up, MenuState.Pit)
+                { MenuState.Pit, new MenuPage(MenuState.Pit)
+                        .AddBtn(Button.Up, MenuState.ShowTemps)
                         .AddBtn(Button.Down, MenuState.Food1)
+                        .AddBtn(Button.Middle, MenuState.SetTemp_Pit) },
+                { MenuState.Food1, new MenuPage(MenuState.ShowTemps)
+                        .AddBtn(Button.Up, MenuState.Pit)
+                        .AddBtn(Button.Down, MenuState.Reports)
+                        .AddBtn(Button.Middle, MenuState.SetTemp_Food1) },
+                { MenuState.Reports, new MenuPage(MenuState.Reports)
+                        .AddBtn(Button.Up, MenuState.Food1)
+                        .AddBtn(Button.Down, MenuState.ShowTemps)
                         .AddBtn(Button.Middle, MenuState.Report_Pit) },
                 { MenuState.Report_Pit, new MenuPage(MenuState.Report_Pit)
-                        .AddBtn(Button.Up, MenuState.Food1)
-                        .AddBtn(Button.Down, MenuState.Food1)
-                        .AddBtn(Button.Middle, MenuState.Food1) },
+                        .AddBtn(Button.Up, MenuState.ShowTemps)
+                        .AddBtn(Button.Down, MenuState.ShowTemps)
+                        .AddBtn(Button.Middle, MenuState.ShowTemps) },
             };
         }
     }
