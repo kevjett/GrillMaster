@@ -11,6 +11,10 @@ namespace GrillMaster
     public static class Config
     {
         public const int WelcomeWait = 10; //secs to wait for welcome
+        public const int DefaultPitTemp = 300; //default target temp for pit
+        public const int DefaultFoodTemp = 160; //default target temp for food
+        public const int LidOpenAutoResume = 30; //number of seconds to wait after temp has been reached and temp goes below target
+        public const int LidOpenOffset = 6; //The percentage the temperature drops before automatic lidopen mode
 
         public enum ProbeType
         {
@@ -39,7 +43,7 @@ namespace GrillMaster
             Pins.ProbePit = new AnalogInput(FEZCerbuino.Pin.AnalogIn.A0);
             Pins.ProbeFood1 = new AnalogInput(FEZCerbuino.Pin.AnalogIn.A1);
             Pins.OnboardLed = new OutputPort(FEZCerbuino.Pin.Digital.LED1, false);
-            Pins.Fan = new OutputPort(FEZCerbuino.Pin.Digital.D0, false);
+            Pins.Fan = new OutputPort(FEZCerbuino.Pin.Digital.D5, false);
 
             var lcdProvider = new GpioLcdTransferProvider(
                 FEZCerbuino.Pin.Digital.D12,  // RS
@@ -53,8 +57,8 @@ namespace GrillMaster
             Lcd.Begin(16, 2);
 
             Probes = new Hashtable() {
-                { ProbeType.Pit, new TempProbe("Pit", ProbeType.Pit, Pins.ProbePit)},
-                { ProbeType.Food1, new TempProbe("Food", ProbeType.Food1, Pins.ProbeFood1) }
+                { ProbeType.Pit, new TempProbe("Pit", ProbeType.Pit, Pins.ProbePit, DefaultPitTemp)},
+                { ProbeType.Food1, new TempProbe("Food", ProbeType.Food1, Pins.ProbeFood1, DefaultFoodTemp) }
             };
 
             Menus = new Hashtable() {

@@ -15,8 +15,9 @@ namespace GrillMaster
         public bool HasTemperature { get { return TemperatureF >= 0; } }
         public string Name { get; private set; }
         public Config.ProbeType ProbeType { get; private set; }
+        public int TargetTemp { get; set; }
 
-        public TempProbe(string name, Config.ProbeType probeType, AnalogInput input)
+        public TempProbe(string name, Config.ProbeType probeType, AnalogInput input, int startingTargetTemp)
         {
             Name = name;
             ProbeType = probeType;
@@ -28,6 +29,7 @@ namespace GrillMaster
             TemperatureC = -1;
             TemperatureFAvg = -1;
             _steinhart = new double[4] { 2.3067434e-4, 2.3696596e-4, 1.2636414e-7, 1.0e+4 };
+            TargetTemp = startingTargetTemp;
         }
 
         public void ReadTemp()

@@ -6,7 +6,16 @@ namespace GrillMaster
     {
         private static long _lastTempRead = 0;
         private static int _periodCounter = 0;
-        public static TempProbe[] Probes;
+        private static int _lidOpenDuration = Config.LidOpenAutoResume;
+        private static bool _pitTempReached = false;
+
+        public static TempProbe[] Probes { get; set; }
+        public static int LidOpenResumeCountdown { get; set; }
+
+        public static bool IsFanRunning
+        {
+            get { return Config.Pins.Fan.Read(); }
+        }
 
         public static void Initialize()
         {
@@ -36,8 +45,43 @@ namespace GrillMaster
             for (var i = 0; i < Probes.Length; i++)
                 Probes[i].CalculateTemp();
 
+            ControlFan();
+
             _periodCounter = 0;
             return true;
+        }
+
+        public static void ControlFan()
+        {
+            var pit = Probes[(int) Config.ProbeType.Pit];
+
+            if (!pit.HasTemperature)
+                return;
+
+            if (pit.TemperatureF >= pit.TargetTemp && (_lidOpenDuration-LidOpenResumeCountdown) > Config.LidOpenAutoResume)
+            {
+                if (!_pitTempReached)
+                {
+                    _pitTempReached = true;
+                }
+                LidOpenResumeCountdown = 0;
+            } 
+            else if (LidOpenResumeCountdown != 0)
+            {
+                LidOpenResumeCountdown = LidOpenResumeCountdown - (Config.TempMeasurePeriod/1000);
+            } 
+            else if (_pitTempReached && ((pit.TargetTemp-pit.TemperatureF)*100/pit.TargetTemp) >= Config.LidOpenOffset)
+            {
+                ResetLidOpenResumeCountdown();
+            }
+
+            Config.Pins.Fan.Write(!_pitTempReached);
+        }
+
+        private static void ResetLidOpenResumeCountdown()
+        {
+            LidOpenResumeCountdown = _lidOpenDuration;
+            _pitTempReached = false;
         }
     }
 }

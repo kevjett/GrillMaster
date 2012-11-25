@@ -53,6 +53,10 @@ namespace GrillMaster
         private static void UpdateDisplay()
         {
             Debug.Print("--Update Display");
+            Config.Pins.OnboardLed.Write(false);
+            Thread.Sleep(500);
+            Config.Pins.OnboardLed.Write(true);
+
             MenuState state = Menu.GetState();
             if (state == MenuState.Welcome)
             {
@@ -87,9 +91,8 @@ namespace GrillMaster
                 }
 
                 Config.Lcd.SetCursorPosition(15, 0);
-                //if (GrillController.IsFanRunning) {
-                Config.Lcd.Write("*");
-                Config.Pins.Fan.Write(true);
+                Config.Lcd.Write(GrillController.IsFanRunning ? "*" : " ");
+                Config.Lcd.SetCursorPosition(1, 0);
             }
         }
 
