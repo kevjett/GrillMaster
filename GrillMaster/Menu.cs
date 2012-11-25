@@ -22,12 +22,14 @@ namespace GrillMaster
         None,
         Up,
         Down,
-        Middle
+        Left,
+        Right
     }
 
     public static class Menu
     {
         public static MenuPage _currentPage;
+        public static MenuState _currentState;
         public static Button _currentButton;
 
         public static void DoWork()
@@ -66,35 +68,79 @@ namespace GrillMaster
         public static void SetState(MenuState state)
         {
             _currentPage = (MenuPage) Config.Menus[state];
+            _currentState = state;
 
-            switch (state)
+            Config.Lcd.Clear();
+            UpdateScreen();
+
+            Program.UpdateLastActivity();
+        }
+
+        public static void UpdateScreen()
+        {
+            Debug.Print("--Update Screen--");
+            Config.Pins.OnboardLed.Write(false);
+            Thread.Sleep(500);
+            Config.Pins.OnboardLed.Write(true);
+
+            switch (_currentState)
             {
                 case MenuState.Welcome:
                     ShowWelcome();
                     break;
                 case MenuState.ShowTemps:
-                    ShowFood();
+                    ShowTemps();
                     break;
                 case MenuState.None:
                 default:
                     return;
             }
-
-
-            Program.UpdateLastActivity();
         }
 
         private static void ShowWelcome()
         {
-            Debug.Print("Welcome Kevin");
+            Debug.Print("Show Welcome");
+            Config.Lcd.Clear();
+            Config.Lcd.SetCursorPosition(0, 0);
             Config.Lcd.WriteLine("Welcome Kevin");
             Config.Lcd.SetCursorPosition(0, 1);
             Config.Lcd.WriteLine("Happy Grilling!");
+
+            if (Program.CurrentTime - Program.StartTime < (Config.WelcomeWait * 1000))
+            {
+                Debug.Print("Waiting for welcome");
+                Thread.Sleep((int)((Config.WelcomeWait * 1000) - (Program.CurrentTime - Program.StartTime)));
+            }
+
+            SetState(MenuState.ShowTemps);
         }
 
-        private static void ShowFood()
+        private static void ShowTemps()
         {
-            //Debug.Print("Show Food:"+probeType.ToString());
+            for (var i = 0; i < 2; i++)
+            {
+                var probe = GrillController.Probes[i];
+                var text = "";
+                if (!probe.HasTemperature)
+                {
+                    text = "- No " + probe.Name + " Probe -";
+                }
+                else if (i == (int)Config.ProbeType.Pit && GrillController.LidOpenResumeCountdown > 0)
+                {
+                    text = probe.Name + ":" + probe.TemperatureF.ToString("N0") + "F Lid:" + GrillController.LidOpenResumeCountdown;
+                }
+                else
+                {
+                    text = probe.Name + ":" + probe.TemperatureF.ToString("N0") + "F [" + probe.TargetTemp + "]";
+                }
+                Config.Lcd.SetCursorPosition(0, i);
+                Debug.Print(text);
+                Config.Lcd.WriteLine(text);
+            }
+
+            Config.Lcd.SetCursorPosition(15, 0);
+            Config.Lcd.Write(GrillController.IsFanRunning ? "*" : " ");
+            Config.Lcd.SetCursorPosition(0, 0);
         }
     }
 }

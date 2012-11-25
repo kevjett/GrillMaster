@@ -63,34 +63,39 @@ namespace GrillMaster
 
             Menus = new Hashtable() {
                 { MenuState.Welcome, new MenuPage(MenuState.Welcome) },
-                { MenuState.SetTemp_Pit, new MenuPage(MenuState.SetTemp_Pit)
-                        .AddBtn(Button.Up, MenuState.SetTemp_Pit)
-                        .AddBtn(Button.Down, MenuState.SetTemp_Pit)
-                        .AddBtn(Button.Middle, MenuState.SetTemp_Pit) },
-                { MenuState.SetTemp_Food1, new MenuPage(MenuState.SetTemp_Food1)
-                        .AddBtn(Button.Up, MenuState.SetTemp_Food1)
-                        .AddBtn(Button.Down, MenuState.SetTemp_Food1)
-                        .AddBtn(Button.Middle, MenuState.SetTemp_Food1) },
+                //{ MenuState.SetTemp_Pit, new MenuPage(MenuState.Pit)
+                //        .AddBtn(Button.Left, MenuState.ShowTemps)
+                //        .AddBtn(Button.Down, MenuState.Food1)
+                //        .AddBtn(Button.Up, MenuState.SetTemp_Pit)
+                //        .AddBtn(Button.Down, MenuState.SetTemp_Pit) },
+                //{ MenuState.SetTemp_Food1, new MenuPage(MenuState.Food1)
+                //        .AddBtn(Button.Left, MenuState.Pit)
+                //        .AddBtn(Button.Down, MenuState.Reports)
+                //        .AddBtn(Button.Up, MenuState.SetTemp_Food1)
+                //        .AddBtn(Button.Down, MenuState.SetTemp_Food1) },
                 { MenuState.ShowTemps, new MenuPage(MenuState.ShowTemps)
-                        .AddBtn(Button.Up, MenuState.Reports)
-                        .AddBtn(Button.Down, MenuState.Pit)
-                        .AddBtn(Button.Middle, MenuState.SetTemp_Pit) },
+                        .AddBtn(Button.Left, MenuState.Reports)
+                        .AddBtn(Button.Right, MenuState.Pit) },
                 { MenuState.Pit, new MenuPage(MenuState.Pit)
-                        .AddBtn(Button.Up, MenuState.ShowTemps)
-                        .AddBtn(Button.Down, MenuState.Food1)
-                        .AddBtn(Button.Middle, MenuState.SetTemp_Pit) },
-                { MenuState.Food1, new MenuPage(MenuState.ShowTemps)
-                        .AddBtn(Button.Up, MenuState.Pit)
-                        .AddBtn(Button.Down, MenuState.Reports)
-                        .AddBtn(Button.Middle, MenuState.SetTemp_Food1) },
+                        .AddBtn(Button.Left, MenuState.ShowTemps)
+                        .AddBtn(Button.Right, MenuState.Food1)
+                        .AddBtn(Button.Up, MenuState.SetTemp_Pit)
+                        .AddBtn(Button.Down, MenuState.SetTemp_Pit) },
+                { MenuState.Food1, new MenuPage(MenuState.Food1)
+                        .AddBtn(Button.Left, MenuState.Pit)
+                        .AddBtn(Button.Right, MenuState.Reports)
+                        .AddBtn(Button.Up, MenuState.SetTemp_Food1)
+                        .AddBtn(Button.Down, MenuState.SetTemp_Food1) },
                 { MenuState.Reports, new MenuPage(MenuState.Reports)
-                        .AddBtn(Button.Up, MenuState.Food1)
-                        .AddBtn(Button.Down, MenuState.ShowTemps)
-                        .AddBtn(Button.Middle, MenuState.Report_Pit) },
+                        .AddBtn(Button.Left, MenuState.Food1)
+                        .AddBtn(Button.Right, MenuState.ShowTemps)
+                        .AddBtn(Button.Up, MenuState.Report_Pit)
+                        .AddBtn(Button.Down, MenuState.Report_Pit) },
                 { MenuState.Report_Pit, new MenuPage(MenuState.Report_Pit)
-                        .AddBtn(Button.Up, MenuState.ShowTemps)
-                        .AddBtn(Button.Down, MenuState.ShowTemps)
-                        .AddBtn(Button.Middle, MenuState.ShowTemps) },
+                        .AddBtn(Button.Left, MenuState.ShowTemps)
+                        .AddBtn(Button.Right, MenuState.ShowTemps)
+                        .AddBtn(Button.Up, MenuState.Reports)
+                        .AddBtn(Button.Down, MenuState.Reports) },
             };
         }
     }
