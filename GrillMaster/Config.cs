@@ -45,7 +45,7 @@ namespace GrillMaster
             Pins.ProbeFood1 = new AnalogInput(FEZCerbuino.Pin.AnalogIn.A1);
             Pins.Buttons = new AnalogInput(FEZCerbuino.Pin.AnalogIn.A2);
             Pins.OnboardLed = new OutputPort(FEZCerbuino.Pin.Digital.LED1, false);
-            Pins.Fan = new OutputPort(FEZCerbuino.Pin.Digital.D5, false);
+            Pins.Fan = new OutputPort(FEZCerbuino.Pin.Digital.D1, false);
 
             var lcdProvider = new GpioLcdTransferProvider(
                 FEZCerbuino.Pin.Digital.D12,  // RS
