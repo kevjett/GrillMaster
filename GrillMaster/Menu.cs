@@ -34,9 +34,9 @@ namespace GrillMaster
 
         public static void DoWork()
         {
-            return; //notdone
             Button button = ReadButton();
 
+            return; //notdone
             if (Program.Elapsed < 250)
                 return;
 
@@ -57,6 +57,10 @@ namespace GrillMaster
         private static Button ReadButton()
         {
             //see if the user has pushed a button
+            var buttonRead = Config.Pins.Buttons.ReadRaw() >> 2;
+
+            Debug.Print("Button Read:" + buttonRead);
+
             return Button.None;
         }
 

@@ -28,6 +28,7 @@ namespace GrillMaster
             public static AnalogInput ProbeFood1;
             public static OutputPort OnboardLed;
             public static OutputPort Fan;
+            public static AnalogInput Buttons;
         }
 
         public static Lcd Lcd;
@@ -42,6 +43,7 @@ namespace GrillMaster
         {
             Pins.ProbePit = new AnalogInput(FEZCerbuino.Pin.AnalogIn.A0);
             Pins.ProbeFood1 = new AnalogInput(FEZCerbuino.Pin.AnalogIn.A1);
+            Pins.Buttons = new AnalogInput(FEZCerbuino.Pin.AnalogIn.A2);
             Pins.OnboardLed = new OutputPort(FEZCerbuino.Pin.Digital.LED1, false);
             Pins.Fan = new OutputPort(FEZCerbuino.Pin.Digital.D5, false);
 
