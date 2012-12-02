@@ -16,6 +16,15 @@ namespace GrillMaster
         public string Name { get; private set; }
         public Config.ProbeType ProbeType { get; private set; }
         public int TargetTemp { get; set; }
+        public bool TargetReached { get { return TemperatureF >= TargetTemp; } }
+        private Config.ProbeState _state;
+        public Config.ProbeState State { get { return _state; } set { SetState(value); } }
+        public long StateChangedTime { get; set; }
+        public Config.ProbeState PreviousState { get; set; }
+        public System.Collections.ArrayList TargetReachedTimes { get; set; }
+        public System.Collections.Stack TargetReachedTimespans { get; set; }
+        public int TargetPercentRemaining { get { return ((int)TemperatureF/TargetTemp) * 100; } }
+
 
         public TempProbe(string name, Config.ProbeType probeType, AnalogInput input, int startingTargetTemp)
         {
@@ -30,6 +39,7 @@ namespace GrillMaster
             TemperatureFAvg = -1;
             _steinhart = new double[4] { 2.3067434e-4, 2.3696596e-4, 1.2636414e-7, 1.0e+4 };
             TargetTemp = startingTargetTemp;
+            State = Config.ProbeState.Unavailable;
         }
 
         public void ReadTemp()
@@ -48,6 +58,14 @@ namespace GrillMaster
             }
             //totalAdc = totalAdc >> 2;
             addAdcValue(totalAdc/sampleCount);
+        }
+
+        private void SetState(Config.ProbeState state)
+        {
+            PreviousState = State;
+            if (PreviousState != state || StateChangedTime<=0)
+                StateChangedTime = Program.CurrentTime;
+            _state = state;
         }
 
         public void CalculateTemp()
@@ -80,15 +98,39 @@ namespace GrillMaster
                     TemperatureF = -1;
                     TemperatureC = -1;
                     TemperatureR = -1;
+                    State = Config.ProbeState.Unavailable;
                 }
             }
             if (this.HasTemperature)
             {
                 //Temperature += Offset;
                 CalcExpMovingAverage((1.0f / 20.0f), TemperatureFAvg, TemperatureF);
+                if (TargetReached)
+                {
+                    if (State != Config.ProbeState.TargetReached)
+                        State = Config.ProbeState.TargetReached;
+
+                    if (PreviousState != Config.ProbeState.TargetReached)
+                    {
+                        TargetReachedTimes.Add(Program.CurrentTime);
+                        TargetReachedTimespans.Push(0);
+                    }
+                    else
+                    {
+                        var timespan = (int)TargetReachedTimespans.Pop();
+                        timespan = timespan + (int)(Program.CurrentTime - StateChangedTime);
+                        TargetReachedTimespans.Push(timespan);
+                    }
+                }
+                else
+                {
+                    if (State != Config.ProbeState.SeekingTarget)
+                        State = Config.ProbeState.SeekingTarget;
+                }
                 //Alarms.updateStatus(TemperatureF);
             }
-            //else
+            else
+                State = Config.ProbeState.Unavailable;
                 //Alarms.silenceAll();
         }
 

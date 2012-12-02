@@ -58,7 +58,7 @@ namespace GrillMaster
             if (!pit.HasTemperature)
                 return;
 
-            if (pit.TemperatureF >= pit.TargetTemp && (_lidOpenDuration-LidOpenResumeCountdown) > Config.LidOpenAutoResume)
+            if (pit.TargetReached && (_lidOpenDuration-LidOpenResumeCountdown) > Config.LidOpenAutoResume)
             {
                 if (!_pitTempReached)
                 {

@@ -23,12 +23,19 @@ namespace GrillMaster
         Up,
         Down,
         Left,
-        Right
+        Right,
+        RightDown,
+        RightUp,
+        LeftDown,
+        LeftUp,
+        LeftRight,
+        UpDown
     }
 
     public static class Menu
     {
         public static MenuPage _currentPage;
+        public static MenuPage _previousPage;
         public static MenuState _currentState;
         public static Button _currentButton;
 
@@ -36,7 +43,7 @@ namespace GrillMaster
         {
             Button button = ReadButton();
 
-            return; //notdone
+            //return; //notdone
             if (Program.Elapsed < 250)
                 return;
 
@@ -45,9 +52,12 @@ namespace GrillMaster
             if (_currentButton == Button.None)
                 return;
 
+            Debug.Print("Button Pushed:" + button.ToString());
+
             Program.UpdateLastActivity();
 
             MenuState newState = _currentPage.GetNewState(button);
+
             if (newState == MenuState.None)
                 return;
 
@@ -59,7 +69,29 @@ namespace GrillMaster
             //see if the user has pushed a button
             var buttonRead = Config.Pins.Buttons.ReadRaw() >> 2;
 
-            Debug.Print("Button Read:" + buttonRead);
+            if (buttonRead > 10)
+                Debug.Print("Button Read:" + buttonRead);
+
+            if (buttonRead >= 130 && buttonRead <= 140)
+                return Button.Up;
+            if (buttonRead >= 250 && buttonRead <= 260)
+                return Button.Left;
+            if (buttonRead >= 340 && buttonRead <= 350)
+                return Button.LeftUp;
+            if (buttonRead >= 450 && buttonRead <= 460)
+                return Button.Down;
+            if (buttonRead >= 520 && buttonRead <= 530)
+                return Button.UpDown;
+            if (buttonRead >= 580 && buttonRead <= 590)
+                return Button.LeftDown;
+            if (buttonRead >= 700 && buttonRead <= 740)
+                return Button.Right;
+            if (buttonRead >= 760 && buttonRead <= 770)
+                return Button.RightUp;
+            if (buttonRead >= 800 && buttonRead <= 810)
+                return Button.LeftRight; 
+            if (buttonRead >= 860 && buttonRead <= 870)
+                return Button.RightDown;
 
             return Button.None;
         }
@@ -71,13 +103,52 @@ namespace GrillMaster
 
         public static void SetState(MenuState state)
         {
+            _previousPage = _currentPage;
             _currentPage = (MenuPage) Config.Menus[state];
             _currentState = state;
 
-            Config.Lcd.Clear();
+            switch (state)
+            {
+                case MenuState.SetTemp_Food1:
+                    changeFood1();
+                    break;
+                case MenuState.SetTemp_Pit:
+                    changePit();
+                    break;
+            }
+
+            if (_currentPage != _previousPage)
+                Config.Lcd.Clear();
+
             UpdateScreen();
 
             Program.UpdateLastActivity();
+        }
+
+        public static void changeFood1()
+        {
+            var probe = GrillController.Probes[(int)Config.ProbeType.Food1];
+            changeTargetTemp(probe);
+        }
+
+        public static void changePit()
+        {
+            var probe = GrillController.Probes[(int)Config.ProbeType.Pit];
+            changeTargetTemp(probe);
+        }
+
+        public static void changeTargetTemp(TempProbe probe)
+        {
+            if (_currentButton == Button.Up)
+            {
+                probe.TargetTemp++;
+                Debug.Print(probe.Name + ": Up target temp to " + probe.TargetTemp);
+            }
+            else if (_currentButton == Button.Down)
+            {
+                probe.TargetTemp--;
+                Debug.Print(probe.Name + ": Down target temp to " + probe.TargetTemp);
+            }
         }
 
         public static void UpdateScreen()
@@ -94,6 +165,17 @@ namespace GrillMaster
                     break;
                 case MenuState.ShowTemps:
                     ShowTemps();
+                    break;
+                case MenuState.Pit:
+                case MenuState.SetTemp_Pit:
+                    ShowPit();
+                    break;
+                case MenuState.Food1:
+                case MenuState.SetTemp_Food1:
+                    ShowFood();
+                    break;
+                case MenuState.Reports:
+                    ShowReports();
                     break;
                 case MenuState.None:
                 default:
@@ -124,19 +206,8 @@ namespace GrillMaster
             for (var i = 0; i < 2; i++)
             {
                 var probe = GrillController.Probes[i];
-                var text = "";
-                if (!probe.HasTemperature)
-                {
-                    text = "- No " + probe.Name + " Probe -";
-                }
-                else if (i == (int)Config.ProbeType.Pit && GrillController.LidOpenResumeCountdown > 0)
-                {
-                    text = probe.Name + ":" + probe.TemperatureF.ToString("N0") + "F Lid:" + GrillController.LidOpenResumeCountdown;
-                }
-                else
-                {
-                    text = probe.Name + ":" + probe.TemperatureF.ToString("N0") + "F [" + probe.TargetTemp + "]";
-                }
+                var text = GetProbeTempText(probe);
+                
                 Config.Lcd.SetCursorPosition(0, i);
                 Debug.Print(text);
                 Config.Lcd.WriteLine(text);
@@ -145,6 +216,101 @@ namespace GrillMaster
             Config.Lcd.SetCursorPosition(15, 0);
             Config.Lcd.Write(GrillController.IsFanRunning ? "*" : " ");
             Config.Lcd.SetCursorPosition(0, 0);
+        }
+
+        private static string GetProbeTempText(TempProbe probe)
+        {
+            if (!probe.HasTemperature)
+            {
+                return "- No " + probe.Name + " Probe -";
+            }
+            else if (probe.ProbeType == Config.ProbeType.Pit && GrillController.LidOpenResumeCountdown > 0)
+            {
+                return probe.Name + ":" + probe.TemperatureF.ToString("N0") + "F Lid:" + GrillController.LidOpenResumeCountdown;
+            }
+            else
+            {
+                return probe.Name + ":" + probe.TemperatureF.ToString("N0") + "F [" + probe.TargetTemp + "]";
+            }
+        }
+
+        private static void ShowFood()
+        {
+            var probe = GrillController.Probes[(int)Config.ProbeType.Food1];
+            var text = GetProbeTempText(probe);
+
+            Config.Lcd.SetCursorPosition(0, 0);
+            Debug.Print(text);
+            Config.Lcd.WriteLine(text);
+
+            if (probe.HasTemperature && _currentState == MenuState.SetTemp_Food1)
+            {
+                Config.Lcd.SetCursorPosition(15, 0);
+                if (_currentButton == Button.Up)
+                    Config.Lcd.Write("v");
+                else if (_currentButton == Button.Down)
+                    Config.Lcd.Write("^");
+            }
+
+            if (!probe.TargetReached && probe.HasTemperature)
+            {
+                text = "G:" + probe.TargetPercentRemaining + "% T:" + Program.TimeText(Program.CurrentTime-probe.StateChangedTime);
+
+                Config.Lcd.SetCursorPosition(0, 1);
+                Debug.Print(text);
+                Config.Lcd.WriteLine(text);
+            }
+            else if (probe.TargetReached && probe.HasTemperature)
+            {
+                text = "GTime:" + Program.TimeText((int)probe.TargetReachedTimespans.Peek());
+
+                Config.Lcd.SetCursorPosition(0, 1);
+                Debug.Print(text);
+                Config.Lcd.WriteLine(text);
+            }
+        }
+
+        private static void ShowPit()
+        {
+            var probe = GrillController.Probes[(int)Config.ProbeType.Pit];
+            var text = GetProbeTempText(probe);
+
+            Config.Lcd.SetCursorPosition(0, 0);
+            Debug.Print(text);
+            Config.Lcd.WriteLine(text);
+
+            if (probe.HasTemperature && _currentState == MenuState.SetTemp_Pit)
+            {
+                Config.Lcd.SetCursorPosition(15, 0);
+                if (_currentButton == Button.Up)
+                    Config.Lcd.Write("v");
+                else if (_currentButton == Button.Down)
+                    Config.Lcd.Write("^");
+            }
+
+            if (!probe.TargetReached && probe.HasTemperature)
+            {
+                text = "G:" + probe.TargetPercentRemaining + "% T:" + Program.TimeText(Program.CurrentTime - probe.StateChangedTime);
+
+                Config.Lcd.SetCursorPosition(0, 1);
+                Debug.Print(text);
+                Config.Lcd.WriteLine(text);
+            }
+            else if (probe.TargetReached && probe.HasTemperature)
+            {
+                text = "GTime:" + Program.TimeText((int)probe.TargetReachedTimespans.Peek());
+
+                Config.Lcd.SetCursorPosition(0, 1);
+                Debug.Print(text);
+                Config.Lcd.WriteLine(text);
+            }
+        }
+
+        private static void ShowReports()
+        {
+            Config.Lcd.SetCursorPosition(0, 0);
+            Debug.Print("See Reports");
+            Config.Lcd.WriteLine("See Reports");
         }
     }
 }

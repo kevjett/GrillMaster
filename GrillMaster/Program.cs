@@ -12,6 +12,9 @@ namespace GrillMaster
         public static long StartTime { get; private set; }
         public static long CurrentTime { get { return (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond); } }
         public static long Elapsed { get { return CurrentTime - LastActivity; } }
+        public static long TotalElapsed { get { return CurrentTime - StartTime; } }
+
+
         public static void Main()
         {
             Initialize();
@@ -47,6 +50,18 @@ namespace GrillMaster
         public static void UpdateLastActivity()
         {
             LastActivity = CurrentTime;
+        }
+
+        public static string TimeText(long milliseconds)
+        {
+            TimeSpan t = TimeSpan.FromTicks(milliseconds * TimeSpan.TicksPerMillisecond);
+
+            string answer = t.Minutes + ":" + t.Seconds;
+
+            if (t.Hours > 0)
+                return t.Hours + ":" + answer;
+
+            return answer;
         }
     }
 }
