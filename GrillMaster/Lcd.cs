@@ -5,6 +5,7 @@
 using System;
 using System.Text;
 using System.Threading;
+using Microsoft.SPOT;
 
 namespace MicroLiquidCrystal
 {
@@ -18,11 +19,15 @@ namespace MicroLiquidCrystal
         private bool _visible = true;
         private bool _autoScroll;
         private bool _backlight = true;
+        public bool DebugMode { get; set; }
 
         private byte _numLines;
         private byte _numColumns;
         private byte _currLine;
         private byte _displayFunction;
+
+        private int _currentRow;
+        private int _currentColumn;
 
         #region LCD Flags
         // ReSharper disable InconsistentNaming
@@ -71,6 +76,7 @@ namespace MicroLiquidCrystal
         public Lcd(ILcdTransferProvider provider)
         {
             Encoding = Encoding.UTF8;
+            DebugMode = false;
 
             if (provider == null) throw new ArgumentNullException("provider");
             _provider = provider;
@@ -265,6 +271,7 @@ namespace MicroLiquidCrystal
         /// </summary>
         public void Clear()
         {
+            if (DebugMode) Debug.Print("LCD: Clear screen");
             SendCommand(LCD_CLEARDISPLAY);
             Thread.Sleep(2); // this command takes a long time!
         }
@@ -289,6 +296,9 @@ namespace MicroLiquidCrystal
         {
             if (row > _numLines)
                 row = _numLines - 1;
+
+            _currentColumn = column;
+            _currentRow = row;
 
             int address = column + RowOffsets[row];
             SendCommand((byte)(LCD_SETDDRAMADDR | address));
@@ -328,6 +338,7 @@ namespace MicroLiquidCrystal
         /// <param name="text">The string to write.</param>
         public void WriteLine(string text)
         {
+            if (DebugMode) Debug.Print("LCD-Write (" + _currentRow + "," + _currentColumn + "): " + text);
             if (text.Length<_numColumns)
             {
                 var adds = _numColumns - text.Length;
@@ -347,6 +358,8 @@ namespace MicroLiquidCrystal
         /// <param name="text">The string to write.</param>
         public void Write(string text)
         {
+            if (DebugMode) Debug.Print("LCD-Write (" + _currentRow + "," + _currentColumn + "): " + text);
+            _currentColumn = _currentColumn + text.Length;
             byte[] buffer = Encoding.GetBytes(text);
             Write(buffer, 0, buffer.Length);
         }

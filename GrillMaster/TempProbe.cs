@@ -23,7 +23,7 @@ namespace GrillMaster
         public Config.ProbeState PreviousState { get; set; }
         public System.Collections.ArrayList TargetReachedTimes { get; set; }
         public System.Collections.Stack TargetReachedTimespans { get; set; }
-        public int TargetPercentRemaining { get { return ((int)TemperatureF/TargetTemp) * 100; } }
+        public int TargetPercentRemaining { get { return (int)((TemperatureF/TargetTemp) * 100); } }
 
 
         public TempProbe(string name, Config.ProbeType probeType, AnalogInput input, int startingTargetTemp)
@@ -40,6 +40,8 @@ namespace GrillMaster
             _steinhart = new double[4] { 2.3067434e-4, 2.3696596e-4, 1.2636414e-7, 1.0e+4 };
             TargetTemp = startingTargetTemp;
             State = Config.ProbeState.Unavailable;
+            TargetReachedTimes = new System.Collections.ArrayList();
+            TargetReachedTimespans = new System.Collections.Stack();
         }
 
         public void ReadTemp()
@@ -118,7 +120,7 @@ namespace GrillMaster
                     else
                     {
                         var timespan = (int)TargetReachedTimespans.Pop();
-                        timespan = timespan + (int)(Program.CurrentTime - StateChangedTime);
+                        timespan = (int)(Program.CurrentTime - StateChangedTime);
                         TargetReachedTimespans.Push(timespan);
                     }
                 }
@@ -132,6 +134,8 @@ namespace GrillMaster
             else
                 State = Config.ProbeState.Unavailable;
                 //Alarms.silenceAll();
+
+            PreviousState = State;
         }
 
         private void CalcExpMovingAverage(float smoothing, double currentAvg, double newTemp)

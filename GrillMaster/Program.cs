@@ -56,7 +56,10 @@ namespace GrillMaster
         {
             TimeSpan t = TimeSpan.FromTicks(milliseconds * TimeSpan.TicksPerMillisecond);
 
-            string answer = t.Minutes + ":" + t.Seconds;
+            var secs = t.Seconds.ToString();
+            if (t.Seconds < 10) secs = "0" + secs;
+
+            string answer = t.Minutes + ":" + secs;
 
             if (t.Hours > 0)
                 return t.Hours + ":" + answer;

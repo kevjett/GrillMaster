@@ -56,9 +56,12 @@ namespace GrillMaster
             var pit = Probes[(int) Config.ProbeType.Pit];
 
             if (!pit.HasTemperature)
+            {
+                Config.Pins.Fan.Write(false);
                 return;
+            }
 
-            if (pit.TargetReached && (_lidOpenDuration-LidOpenResumeCountdown) > Config.LidOpenAutoResume)
+            if (pit.TargetReached && (_lidOpenDuration-LidOpenResumeCountdown) >= Config.LidOpenAutoResume)
             {
                 if (!_pitTempReached)
                 {
@@ -69,8 +72,8 @@ namespace GrillMaster
             else if (LidOpenResumeCountdown != 0)
             {
                 LidOpenResumeCountdown = LidOpenResumeCountdown - (Config.TempMeasurePeriod/1000);
-            } 
-            else if (_pitTempReached && ((pit.TargetTemp-pit.TemperatureF)*100/pit.TargetTemp) >= Config.LidOpenOffset)
+            }
+            else if (_pitTempReached && (((pit.TargetTemp - pit.TemperatureF) / pit.TargetTemp) * 100) >= Config.LidOpenOffset)
             {
                 ResetLidOpenResumeCountdown();
             }
