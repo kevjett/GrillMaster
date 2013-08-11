@@ -1,35 +1,23 @@
 using Microsoft.SPOT.Hardware;
+using System;
 
 namespace GrillMaster
 {
-    public class TempProbe
+    public class PinProbe : Probe, IProbe
     {
         private readonly AnalogInput _aInput;
         private int _accumulator;
         private int _accumulatedCount;
         private double[] _steinhart;
+        private long _lastTempRead = 0;
         public double TemperatureF { get; private set; }
         public double TemperatureR { get; private set; }
         public double TemperatureC { get; private set; }
         public double TemperatureFAvg { get; private set; }
-        public bool HasTemperature { get { return TemperatureF >= 0; } }
-        public string Name { get; private set; }
-        public Config.ProbeType ProbeType { get; private set; }
-        public int TargetTemp { get; set; }
-        public bool TargetReached { get { return TemperatureF >= TargetTemp; } }
-        private Config.ProbeState _state;
-        public Config.ProbeState State { get { return _state; } set { SetState(value); } }
-        public long StateChangedTime { get; set; }
-        public Config.ProbeState PreviousState { get; set; }
-        public System.Collections.ArrayList TargetReachedTimes { get; set; }
-        public System.Collections.Stack TargetReachedTimespans { get; set; }
-        public int TargetPercentRemaining { get { return (int)((TemperatureF/TargetTemp) * 100); } }
 
-
-        public TempProbe(string name, Config.ProbeType probeType, AnalogInput input, int startingTargetTemp)
+        public PinProbe(string name, Config.ProbeType probeType, int startingTargetTemp, AnalogInput input)
+            : base(name, probeType, startingTargetTemp)
         {
-            Name = name;
-            ProbeType = probeType;
             _aInput = input;
             _accumulator = 0;
             _accumulatedCount = 0;
@@ -38,10 +26,21 @@ namespace GrillMaster
             TemperatureC = -1;
             TemperatureFAvg = -1;
             _steinhart = new double[4] { 2.3067434e-4, 2.3696596e-4, 1.2636414e-7, 1.0e+4 };
-            TargetTemp = startingTargetTemp;
-            State = Config.ProbeState.Unavailable;
-            TargetReachedTimes = new System.Collections.ArrayList();
-            TargetReachedTimespans = new System.Collections.Stack();
+        }
+
+        public override void PreReadTemp()
+        {
+            ReadTemp();
+        }
+
+        public override double GetTemp()
+        {
+            if (TemperatureF > 0 || (DateTime.Now.Ticks - _lastTempRead) > 1000)
+            {
+                PreReadTemp();
+                CalculateTemp();
+            }
+            return TemperatureF;
         }
 
         public void ReadTemp()
@@ -60,15 +59,10 @@ namespace GrillMaster
             }
             //totalAdc = totalAdc >> 2;
             addAdcValue(totalAdc/sampleCount);
+            _lastTempRead = DateTime.Now.Ticks;
         }
 
-        private void SetState(Config.ProbeState state)
-        {
-            PreviousState = State;
-            if (PreviousState != state || StateChangedTime<=0)
-                StateChangedTime = Program.CurrentTime;
-            _state = state;
-        }
+        
 
         public void CalculateTemp()
         {
@@ -103,11 +97,11 @@ namespace GrillMaster
                     State = Config.ProbeState.Unavailable;
                 }
             }
-            if (this.HasTemperature)
+            if (TemperatureF >= 0)
             {
                 //Temperature += Offset;
                 CalcExpMovingAverage((1.0f / 20.0f), TemperatureFAvg, TemperatureF);
-                if (TargetReached)
+                if (IsTargetReached())
                 {
                     if (State != Config.ProbeState.TargetReached)
                         State = Config.ProbeState.TargetReached;

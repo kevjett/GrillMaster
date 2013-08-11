@@ -154,7 +154,7 @@ namespace GrillMaster
             changeTargetTemp(probe);
         }
 
-        public static void changeTargetTemp(TempProbe probe)
+        public static void changeTargetTemp(IProbe probe)
         {
             var changeMultiplier = 1;
             if (_buttonDepressedElapsed > 3000)
@@ -193,9 +193,9 @@ namespace GrillMaster
 
         public static void UpdateScreen()
         {
-            Config.Pins.OnboardLed.Write(false);
+            //Config.Pins.OnboardLed.Write(false);
             Thread.Sleep(500);
-            Config.Pins.OnboardLed.Write(true);
+            //Config.Pins.OnboardLed.Write(true);
 
             switch (_currentState)
             {
@@ -225,10 +225,10 @@ namespace GrillMaster
         private static void ShowWelcome()
         {
             Config.Lcd.Clear();
-            Config.Lcd.SetCursorPosition(0, 0);
-            Config.Lcd.WriteLine("Welcome Kevin");
-            Config.Lcd.SetCursorPosition(0, 1);
-            Config.Lcd.WriteLine("Happy Grilling!");
+            Config.Lcd.CursorHome();
+            Config.Lcd.PrintString("Welcome Kevin");
+            Config.Lcd.SetCursor(0, 1);
+            Config.Lcd.PrintString("Happy Grilling!");
 
             if (Program.CurrentTime - Program.StartTime < (Config.WelcomeWait * 1000))
             {
@@ -244,29 +244,29 @@ namespace GrillMaster
             for (var i = 0; i < 2; i++)
             {
                 var probe = GrillController.Probes[i];
-                
-                Config.Lcd.SetCursorPosition(0, i);
-                Config.Lcd.WriteLine(GetProbeTempText(probe));
+
+                Config.Lcd.SetCursor(0, (byte)i);
+                Config.Lcd.PrintString(GetProbeTempText(probe));
             }
 
-            Config.Lcd.SetCursorPosition(15, 0);
-            Config.Lcd.Write(GrillController.IsFanRunning ? "*" : " ");
-            Config.Lcd.SetCursorPosition(0, 0);
+            Config.Lcd.SetCursor(15, 0);
+            Config.Lcd.PrintString(GrillController.IsFanRunning ? "*" : " ");
+            Config.Lcd.CursorHome();
         }
 
-        private static string GetProbeTempText(TempProbe probe)
+        private static string GetProbeTempText(IProbe probe)
         {
-            if (!probe.HasTemperature)
+            if (!probe.HasTemp())
             {
                 return "-No " + probe.Name + " Probe";
             }
             else if (probe.ProbeType == Config.ProbeType.Pit && GrillController.LidOpenResumeCountdown > 0)
             {
-                return probe.Name + ":" + probe.TemperatureF.ToString("N0") + "F Lid:" + GrillController.LidOpenResumeCountdown;
+                return probe.Name + ":" + probe.GetTemp().ToString("N0") + "F Lid:" + GrillController.LidOpenResumeCountdown;
             }
             else
             {
-                return probe.Name + ":" + probe.TemperatureF.ToString("N0") + "F [" + probe.TargetTemp + "]";
+                return probe.Name + ":" + probe.GetTemp().ToString("N0") + "F [" + probe.TargetTemp + "]";
             }
         }
 
@@ -274,66 +274,72 @@ namespace GrillMaster
         {
             var probe = GrillController.Probes[(int)Config.ProbeType.Food1];
 
-            Config.Lcd.SetCursorPosition(0, 0);
-            Config.Lcd.WriteLine(GetProbeTempText(probe));
+            Config.Lcd.CursorHome();
+            Config.Lcd.PrintString(GetProbeTempText(probe));
 
-            if (probe.HasTemperature && _currentState == MenuState.SetTemp_Food1)
+            if (!probe.HasTemp())
+                return;
+
+            if (_currentState == MenuState.SetTemp_Food1)
             {
-                Config.Lcd.SetCursorPosition(15, 0);
+                Config.Lcd.SetCursor(15, 0);
                 if (_currentButton == Button.Up)
-                    Config.Lcd.Write("^");
+                    Config.Lcd.PrintString("^");
                 else if (_currentButton == Button.Down)
-                    Config.Lcd.Write("V");
+                    Config.Lcd.PrintString("V");
             }
 
             var text = "";
-            if (!probe.TargetReached && probe.HasTemperature)
+            if (!probe.IsTargetReached())
             {
-                text = "G-" + probe.TargetPercentRemaining + "% T-" + Program.TimeText(Program.CurrentTime-probe.StateChangedTime);
+                text = "G-" + probe.TargetPercentRemaining + "% T-" + Program.TimeText(Program.CurrentTime - probe.StateChangedTime);
             }
-            else if (probe.TargetReached && probe.HasTemperature)
+            else if (probe.IsTargetReached())
             {
                 //text = "Goal-" + Program.TimeText((int)probe.TargetReachedTimespans.Peek());
             }
 
-            Config.Lcd.SetCursorPosition(0, 1);
-            Config.Lcd.WriteLine(text);
+            Config.Lcd.SetCursor(0, 1);
+            Config.Lcd.PrintString(text);
         }
 
         private static void ShowPit()
         {
             var probe = GrillController.Probes[(int)Config.ProbeType.Pit];
 
-            Config.Lcd.SetCursorPosition(0, 0);
-            Config.Lcd.WriteLine(GetProbeTempText(probe));
+            Config.Lcd.CursorHome();
+            Config.Lcd.PrintString(GetProbeTempText(probe));
 
-            if (probe.HasTemperature && _currentState == MenuState.SetTemp_Pit)
+            if (!probe.HasTemp())
+                return;
+
+            if (_currentState == MenuState.SetTemp_Pit)
             {
-                Config.Lcd.SetCursorPosition(15, 0);
+                Config.Lcd.SetCursor(15, 0);
                 if (_currentButton == Button.Up)
-                    Config.Lcd.Write("^");
+                    Config.Lcd.PrintString("^");
                 else if (_currentButton == Button.Down)
-                    Config.Lcd.Write("V");
+                    Config.Lcd.PrintString("V");
             }
 
             var text = "";
-            if (!probe.TargetReached && probe.HasTemperature)
+            if (!probe.IsTargetReached())
             {
                 text = "G-" + probe.TargetPercentRemaining + "% T-" + Program.TimeText(Program.CurrentTime - probe.StateChangedTime);
             }
-            else if (probe.TargetReached && probe.HasTemperature)
+            else
             {
                 //text = "Goal-" + Program.TimeText((int)probe.TargetReachedTimespans.Peek());
             }
 
-            Config.Lcd.SetCursorPosition(0, 1);
-            Config.Lcd.WriteLine(text);
+            Config.Lcd.SetCursor(0, 1);
+            Config.Lcd.PrintString(text);
         }
 
         private static void ShowReports()
         {
-            Config.Lcd.SetCursorPosition(0, 0);
-            Config.Lcd.WriteLine("See Reports");
+            Config.Lcd.CursorHome();
+            Config.Lcd.PrintString("See Reports");
         }
     }
 }

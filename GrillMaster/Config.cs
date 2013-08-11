@@ -2,9 +2,9 @@ using System;
 using System.Collections;
 using System.Threading;
 using GHI.OSHW.Hardware;
-using MicroLiquidCrystal;
 using Microsoft.SPOT;
 using Microsoft.SPOT.Hardware;
+using Gadgeteer.Modules.GHIElectronics;
 
 namespace GrillMaster
 {
@@ -33,12 +33,13 @@ namespace GrillMaster
         {
             public static AnalogInput ProbePit;
             public static AnalogInput ProbeFood1;
-            public static OutputPort OnboardLed;
+            //public static OutputPort OnboardLed;
             public static OutputPort Fan;
             public static AnalogInput Buttons;
         }
 
-        public static Lcd Lcd;
+        public static ILcd Lcd;
+        public static Thermocouple Thermocouple1;
 
         public static Hashtable Probes;
         public static Hashtable Menus;
@@ -51,24 +52,12 @@ namespace GrillMaster
             Pins.ProbePit = new AnalogInput(FEZCerbuino.Pin.AnalogIn.A0);
             Pins.ProbeFood1 = new AnalogInput(FEZCerbuino.Pin.AnalogIn.A1);
             Pins.Buttons = new AnalogInput(FEZCerbuino.Pin.AnalogIn.A2);
-            Pins.OnboardLed = new OutputPort(FEZCerbuino.Pin.Digital.LED1, false);
             Pins.Fan = new OutputPort(FEZCerbuino.Pin.Digital.D6, false);
-
-            var lcdProvider = new GpioLcdTransferProvider(
-                FEZCerbuino.Pin.Digital.D7,  // RS
-                FEZCerbuino.Pin.Digital.D8, // enable
-                FEZCerbuino.Pin.Digital.D9,  //d4
-                FEZCerbuino.Pin.Digital.D10,  //d5
-                FEZCerbuino.Pin.Digital.D11,  //d6
-                FEZCerbuino.Pin.Digital.D12); // d7
-
-            Lcd = new Lcd(lcdProvider);
-            Lcd.Begin(16, 2);
-            Lcd.DebugMode = true;
+            //Pins.OnboardLed = new OutputPort(FEZCerbuino.Pin.Digital.LED1, false);
 
             Probes = new Hashtable() {
-                { ProbeType.Pit, new TempProbe("Pit", ProbeType.Pit, Pins.ProbePit, DefaultPitTemp)},
-                { ProbeType.Food1, new TempProbe("Food", ProbeType.Food1, Pins.ProbeFood1, DefaultFoodTemp) }
+                { ProbeType.Pit, new PinProbe("Pit", ProbeType.Pit, DefaultPitTemp, Pins.ProbePit)},
+                { ProbeType.Food1, new PinProbe("Food", ProbeType.Food1, DefaultFoodTemp, Pins.ProbeFood1) }
             };
 
             Menus = new Hashtable() {
@@ -108,6 +97,11 @@ namespace GrillMaster
                 //        .AddBtn(Button.Up, MenuState.Reports)
                 //        .AddBtn(Button.Down, MenuState.Reports) },
             };
+        }
+
+        public static void SetupLcd(Display_HD44780 display)
+        {
+            Lcd = new GadgeteerLcd(display);
         }
     }
 }

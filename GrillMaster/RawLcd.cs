@@ -9,7 +9,7 @@ using Microsoft.SPOT;
 
 namespace MicroLiquidCrystal
 {
-    public class Lcd
+    public class RawLcd
     {
         private static readonly byte[] RowOffsets = new byte[] { 0x00, 0x40, 0x14, 0x54 };
 
@@ -73,7 +73,7 @@ namespace MicroLiquidCrystal
         // ReSharper restore InconsistentNaming
         #endregion
 
-        public Lcd(ILcdTransferProvider provider)
+        public RawLcd(ILcdTransferProvider provider)
         {
             Encoding = Encoding.UTF8;
             DebugMode = false;

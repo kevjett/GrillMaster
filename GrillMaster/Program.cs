@@ -1,12 +1,20 @@
 ﻿using System;
+using System.Collections;
 using System.Threading;
-using GHI.OSHW.Hardware;
 using Microsoft.SPOT;
-using Microsoft.SPOT.Hardware;
+using Microsoft.SPOT.Presentation;
+using Microsoft.SPOT.Presentation.Controls;
+using Microsoft.SPOT.Presentation.Media;
+using Microsoft.SPOT.Touch;
 
-namespace GrillMaster 
+using Gadgeteer.Networking;
+using GT = Gadgeteer;
+using GTM = Gadgeteer.Modules;
+using Gadgeteer.Modules.GHIElectronics;
+
+namespace GrillMaster
 {
-    public class Program
+    public partial class Program
     {
         public static long LastActivity { get; private set; }
         public static long StartTime { get; private set; }
@@ -14,21 +22,40 @@ namespace GrillMaster
         public static long Elapsed { get { return CurrentTime - LastActivity; } }
         public static long TotalElapsed { get { return CurrentTime - StartTime; } }
 
-
-        public static void Main()
+        // This method is run when the mainboard is powered up or reset.   
+        void ProgramStarted()
         {
+            /*******************************************************************************************
+            Modules added in the Program.gadgeteer designer view are used by typing 
+            their name followed by a period, e.g.  button.  or  camera.
+            
+            Many modules generate useful events. Type +=<tab><tab> to add a handler to an event, e.g.:
+                button.ButtonPressed +=<tab><tab>
+            
+            If you want to do something periodically, use a GT.Timer and handle its Tick event, e.g.:
+                GT.Timer timer = new GT.Timer(1000); // every second (1000ms)
+                timer.Tick +=<tab><tab>
+                timer.Start();
+            *******************************************************************************************/
+            
             Initialize();
 
-            while (true)
-            {
-                Menu.DoWork();
-                if (GrillController.DoWork())
-                    Menu.UpdateScreen();
-            }
+            GT.Timer timer = new GT.Timer(500);
+            timer.Tick += new GT.Timer.TickEventHandler(timer_Tick);
+            timer.Start();
         }
 
-        static void Initialize()
+        void timer_Tick(GT.Timer timer)
         {
+            Menu.DoWork();
+            if (GrillController.DoWork())
+                Menu.UpdateScreen();
+        }
+
+        void Initialize()
+        {
+            Config.SetupLcd(display_HD44780);
+            Config.Thermocouple1 = thermocouple;
             Config.Initialize();
             BlinkLed(); //boot completed
 
@@ -41,9 +68,9 @@ namespace GrillMaster
 
         static void BlinkLed()
         {
-            Config.Pins.OnboardLed.Write(true);
+            //Config.Pins.OnboardLed.Write(true);
             Thread.Sleep(350);
-            Config.Pins.OnboardLed.Write(false);
+            //Config.Pins.OnboardLed.Write(false);
             Thread.Sleep(50);
         }
 
