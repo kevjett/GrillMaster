@@ -81,7 +81,7 @@ namespace GrillMaster
         private static Button ReadButton()
         {
             //see if the user has pushed a button
-            var buttonRead = Config.Pins.Buttons.ReadRaw() >> 2;
+            var buttonRead = Config.Buttons.Read() >> 2;
 
             if (buttonRead > 10)
                 Debug.Print("Button Read:" + buttonRead);
@@ -154,7 +154,7 @@ namespace GrillMaster
             changeTargetTemp(probe);
         }
 
-        public static void changeTargetTemp(IProbe probe)
+        public static void changeTargetTemp(ProbeController probe)
         {
             var changeMultiplier = 1;
             if (_buttonDepressedElapsed > 3000)
@@ -239,6 +239,68 @@ namespace GrillMaster
             SetState(MenuState.ShowTemps);
         }
 
+        public static void SpeedTest()
+        {
+            Config.Lcd.Clear();
+            Config.Lcd.CursorHome();
+            Config.Lcd.PrintString("Fan Speed Test");
+
+            Config.Fan.CurrentSpeed = Fan.Speed.Percent_10;
+            Config.Lcd.SetCursor(0, 1);
+            Config.Lcd.PrintString("10%");
+            Thread.Sleep(5000);
+
+            Config.Fan.CurrentSpeed = Fan.Speed.Percent_20;
+            Config.Lcd.SetCursor(0, 1);
+            Config.Lcd.PrintString("20%");
+            Thread.Sleep(5000);
+
+            Config.Fan.CurrentSpeed = Fan.Speed.Percent_30;
+            Config.Lcd.SetCursor(0, 1);
+            Config.Lcd.PrintString("30%");
+            Thread.Sleep(5000);
+
+            Config.Fan.CurrentSpeed = Fan.Speed.Percent_40;
+            Config.Lcd.SetCursor(0, 1);
+            Config.Lcd.PrintString("40%");
+            Thread.Sleep(5000);
+
+            Config.Fan.CurrentSpeed = Fan.Speed.Percent_50;
+            Config.Lcd.SetCursor(0, 1);
+            Config.Lcd.PrintString("50%");
+            Thread.Sleep(5000);
+
+            Config.Fan.CurrentSpeed = Fan.Speed.Percent_60;
+            Config.Lcd.SetCursor(0, 1);
+            Config.Lcd.PrintString("60%");
+            Thread.Sleep(5000);
+
+            Config.Fan.CurrentSpeed = Fan.Speed.Percent_70;
+            Config.Lcd.SetCursor(0, 1);
+            Config.Lcd.PrintString("70%");
+            Thread.Sleep(5000);
+
+            Config.Fan.CurrentSpeed = Fan.Speed.Percent_80;
+            Config.Lcd.SetCursor(0, 1);
+            Config.Lcd.PrintString("80%");
+            Thread.Sleep(5000);
+
+            Config.Fan.CurrentSpeed = Fan.Speed.Percent_90;
+            Config.Lcd.SetCursor(0, 1);
+            Config.Lcd.PrintString("90%");
+            Thread.Sleep(5000);
+
+            Config.Fan.CurrentSpeed = Fan.Speed.Percent_100;
+            Config.Lcd.SetCursor(0, 1);
+            Config.Lcd.PrintString("100%");
+            Thread.Sleep(5000);
+
+            Config.Fan.CurrentSpeed = Fan.Speed.Stopped;
+            Config.Lcd.SetCursor(0, 1);
+            Config.Lcd.PrintString("0%");
+            Thread.Sleep(5000);
+        }
+
         private static void ShowTemps()
         {
             for (var i = 0; i < 2; i++)
@@ -250,11 +312,11 @@ namespace GrillMaster
             }
 
             Config.Lcd.SetCursor(15, 0);
-            Config.Lcd.PrintString(GrillController.IsFanRunning ? "*" : " ");
+            Config.Lcd.PrintString(Config.Fan.IsFanRunning ? "*" : " ");
             Config.Lcd.CursorHome();
         }
 
-        private static string GetProbeTempText(IProbe probe)
+        private static string GetProbeTempText(ProbeController probe)
         {
             if (!probe.HasTemp())
             {
@@ -262,11 +324,11 @@ namespace GrillMaster
             }
             else if (probe.ProbeType == Config.ProbeType.Pit && GrillController.LidOpenResumeCountdown > 0)
             {
-                return probe.Name + ":" + probe.GetTemp().ToString("N0") + "F Lid:" + GrillController.LidOpenResumeCountdown;
+                return probe.Name + ":" + probe.CurrentTemp.ToString("N0") + "F Lid:" + GrillController.LidOpenResumeCountdown;
             }
             else
             {
-                return probe.Name + ":" + probe.GetTemp().ToString("N0") + "F [" + probe.TargetTemp + "]";
+                return probe.Name + ":" + probe.CurrentTemp.ToString("N0") + "F [" + probe.TargetTemp + "]";
             }
         }
 

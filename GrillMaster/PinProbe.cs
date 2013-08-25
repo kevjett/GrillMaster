@@ -1,55 +1,58 @@
-using Microsoft.SPOT.Hardware;
 using System;
+using Microsoft.SPOT;
+using Microsoft.SPOT.Hardware;
 
 namespace GrillMaster
 {
-    public class PinProbe : Probe, IProbe
+    public class PinProbe : IProbe
     {
-        private readonly AnalogInput _aInput;
+        public static class ProbeModel
+        {
+            public static double[] Maverick = new double[4] { 2.3067434e-4, 2.3696596e-4, 1.2636414e-7, 1.0e+4 };
+        }
+
+        private readonly AnalogInput _input;
         private int _accumulator;
         private int _accumulatedCount;
         private double[] _steinhart;
         private long _lastTempRead = 0;
-        public double TemperatureF { get; private set; }
-        public double TemperatureR { get; private set; }
-        public double TemperatureC { get; private set; }
-        public double TemperatureFAvg { get; private set; }
+        private double TemperatureF = -1;
+        private double TemperatureR = -1;
+        private double TemperatureC = -1;
+        private double TemperatureFAvg = -1;
+        private double _currentTemp = -1;
 
-        public PinProbe(string name, Config.ProbeType probeType, int startingTargetTemp, AnalogInput input)
-            : base(name, probeType, startingTargetTemp)
+        public PinProbe(AnalogInput input, double[] steinhartValues)
         {
-            _aInput = input;
+            _input = input;
             _accumulator = 0;
             _accumulatedCount = 0;
             TemperatureF = -1;
             TemperatureR = -1;
             TemperatureC = -1;
             TemperatureFAvg = -1;
-            _steinhart = new double[4] { 2.3067434e-4, 2.3696596e-4, 1.2636414e-7, 1.0e+4 };
+            _steinhart = steinhartValues;
         }
 
-        public override void PreReadTemp()
+        public double CurrentTemp
+        {
+            get { return GetTemp(); }
+        }
+
+        private double GetTemp()
         {
             ReadTemp();
-        }
-
-        public override double GetTemp()
-        {
-            if (TemperatureF > 0 || (DateTime.Now.Ticks - _lastTempRead) > 1000)
-            {
-                PreReadTemp();
-                CalculateTemp();
-            }
+            CalculateTemp();
             return TemperatureF;
         }
 
-        public void ReadTemp()
+        private void ReadTemp()
         {
             var totalAdc = 0;
             var sampleCount = 100;
             for (int i = 0; i < sampleCount; i++)
             {
-                var adc = _aInput.ReadRaw();
+                var adc = _input.ReadRaw();
                 if (adc == 0 || adc >= 4095)
                 {
                     addAdcValue(0);
@@ -62,9 +65,7 @@ namespace GrillMaster
             _lastTempRead = DateTime.Now.Ticks;
         }
 
-        
-
-        public void CalculateTemp()
+        private void CalculateTemp()
         {
             double AdcMax = (1 << (10 + 2)) - 1;
             if (_accumulatedCount != 0)
@@ -94,42 +95,12 @@ namespace GrillMaster
                     TemperatureF = -1;
                     TemperatureC = -1;
                     TemperatureR = -1;
-                    State = Config.ProbeState.Unavailable;
                 }
             }
             if (TemperatureF >= 0)
             {
-                //Temperature += Offset;
                 CalcExpMovingAverage((1.0f / 20.0f), TemperatureFAvg, TemperatureF);
-                if (IsTargetReached())
-                {
-                    if (State != Config.ProbeState.TargetReached)
-                        State = Config.ProbeState.TargetReached;
-
-                    if (PreviousState != Config.ProbeState.TargetReached)
-                    {
-                        TargetReachedTimes.Add(Program.CurrentTime);
-                        TargetReachedTimespans.Push(0);
-                    }
-                    else
-                    {
-                        var timespan = (int)TargetReachedTimespans.Pop();
-                        timespan = (int)(Program.CurrentTime - StateChangedTime);
-                        TargetReachedTimespans.Push(timespan);
-                    }
-                }
-                else
-                {
-                    if (State != Config.ProbeState.SeekingTarget)
-                        State = Config.ProbeState.SeekingTarget;
-                }
-                //Alarms.updateStatus(TemperatureF);
             }
-            else
-                State = Config.ProbeState.Unavailable;
-                //Alarms.silenceAll();
-
-            PreviousState = State;
         }
 
         private void CalcExpMovingAverage(float smoothing, double currentAvg, double newTemp)

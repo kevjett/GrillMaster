@@ -29,17 +29,18 @@ namespace GrillMaster
             TargetReached
         }
 
-        public static class Pins
+        private static class Pins
         {
             public static AnalogInput ProbePit;
             public static AnalogInput ProbeFood1;
             //public static OutputPort OnboardLed;
-            public static OutputPort Fan;
             public static AnalogInput Buttons;
         }
 
         public static ILcd Lcd;
-        public static Thermocouple Thermocouple1;
+        private static Thermocouple _thermocouple1;
+        public static Fan Fan;
+        public static PinButton Buttons;
 
         public static Hashtable Probes;
         public static Hashtable Menus;
@@ -52,13 +53,18 @@ namespace GrillMaster
             Pins.ProbePit = new AnalogInput(FEZCerbuino.Pin.AnalogIn.A0);
             Pins.ProbeFood1 = new AnalogInput(FEZCerbuino.Pin.AnalogIn.A1);
             Pins.Buttons = new AnalogInput(FEZCerbuino.Pin.AnalogIn.A2);
-            Pins.Fan = new OutputPort(FEZCerbuino.Pin.Digital.D6, false);
+            //Pins.Fan = new OutputPort(FEZCerbuino.Pin.Digital.D6, false);
             //Pins.OnboardLed = new OutputPort(FEZCerbuino.Pin.Digital.LED1, false);
+            //Pins.Fan = new PWM(, 50000, 0.0, false);
+            //FEZCerbuino.Pin.PWM.D0
+            Fan = new Fan(FEZCerbuino.Pin.PWM.D0);
 
             Probes = new Hashtable() {
-                { ProbeType.Pit, new PinProbe("Pit", ProbeType.Pit, DefaultPitTemp, Pins.ProbePit)},
-                { ProbeType.Food1, new PinProbe("Food", ProbeType.Food1, DefaultFoodTemp, Pins.ProbeFood1) }
+                { ProbeType.Pit, new ProbeController(new PinProbe(Pins.ProbePit, PinProbe.ProbeModel.Maverick), "Pit", ProbeType.Pit, DefaultPitTemp)},
+                { ProbeType.Food1, new ProbeController(new PinProbe(Pins.ProbeFood1, PinProbe.ProbeModel.Maverick), "Food", ProbeType.Food1, DefaultFoodTemp) }
             };
+
+            Buttons = new PinButton(Pins.Buttons);
 
             Menus = new Hashtable() {
                 { MenuState.Welcome, new MenuPage(MenuState.Welcome) },
@@ -102,6 +108,11 @@ namespace GrillMaster
         public static void SetupLcd(Display_HD44780 display)
         {
             Lcd = new GadgeteerLcd(display);
+        }
+
+        internal static void SetupThemocouple(Thermocouple thermocouple)
+        {
+            _thermocouple1 = thermocouple;
         }
     }
 }

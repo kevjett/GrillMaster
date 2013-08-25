@@ -42,7 +42,9 @@
   <!-- Everything below here is custom to .NET MF / Gadgeteer template-->
   <Import Project="$(NetMfTargetsBaseDir)$(TargetFrameworkVersion)\CSharp.Targets" />
   <ItemGroup>
+    <Compile Include="PinButton.cs" />
     <Compile Include="Config.cs" />
+    <Compile Include="Fan.cs" />
     <Compile Include="GpioLcdTransferProvider.cs" />
     <Compile Include="ILcd.cs" />
     <Compile Include="ILcdTransferProvider.cs" />
@@ -53,7 +55,8 @@
     <Compile Include="Menu.cs" />
     <Compile Include="MenuPage.cs" />
     <Compile Include="GadgeteerProbe.cs" />
-    <Compile Include="Probe.cs" />
+    <Compile Include="PinProbe.cs" />
+    <Compile Include="ProbeController.cs" />
     <Compile Include="Program.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -67,7 +70,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="PinProbe.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Gadgeteer">
@@ -85,6 +87,7 @@
     </Reference>
     <Reference Include="Microsoft.SPOT.Graphics" />
     <Reference Include="Microsoft.SPOT.Hardware" />
+    <Reference Include="Microsoft.SPOT.Hardware.PWM" />
     <Reference Include="Microsoft.SPOT.Hardware.SerialPort" />
     <Reference Include="Microsoft.SPOT.IO" />
     <Reference Include="Microsoft.SPOT.Native" />

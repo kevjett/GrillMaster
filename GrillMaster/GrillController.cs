@@ -9,20 +9,15 @@ namespace GrillMaster
         private static int _lidOpenDuration = Config.LidOpenAutoResume;
         private static bool _pitTempReached = false;
 
-        public static IProbe[] Probes { get; set; }
+        public static ProbeController[] Probes { get; set; }
         public static int LidOpenResumeCountdown { get; set; }
-
-        public static bool IsFanRunning
-        {
-            get { return Config.Pins.Fan.Read(); }
-        }
 
         public static void Initialize()
         {
-            Probes = new IProbe[Config.Probes.Count];
+            Probes = new ProbeController[Config.Probes.Count];
             foreach (Config.ProbeType key in Config.Probes.Keys)
             {
-                var probe = (IProbe)Config.Probes[key];
+                var probe = (ProbeController)Config.Probes[key];
                 Probes[(int) probe.ProbeType] = probe;
             }
         }
@@ -34,9 +29,6 @@ namespace GrillMaster
             if ((elapsed/TimeSpan.TicksPerMillisecond) < (Config.TempMeasurePeriod / Config.TempAverageCount))
                 return false;
             _lastTempRead = m;
-
-            for (var i = 0; i < Probes.Length; i++)
-                Probes[i].PreReadTemp();
 
             ++_periodCounter;
             if (_periodCounter < Config.TempAverageCount)
@@ -54,11 +46,11 @@ namespace GrillMaster
 
             if (!pit.HasTemp())
             {
-                Config.Pins.Fan.Write(false);
+                Config.Fan.CurrentSpeed = Fan.Speed.None;
                 return;
             }
 
-            if (pit.IsTargetReached() && (_lidOpenDuration-LidOpenResumeCountdown) >= Config.LidOpenAutoResume)
+            if (pit.State == Config.ProbeState.TargetReached && (_lidOpenDuration-LidOpenResumeCountdown) >= Config.LidOpenAutoResume)
             {
                 if (!_pitTempReached)
                 {
@@ -75,7 +67,12 @@ namespace GrillMaster
                 ResetLidOpenResumeCountdown();
             }
 
-            Config.Pins.Fan.Write(!_pitTempReached);
+            if (_pitTempReached)
+                Config.Fan.CurrentSpeed = Fan.Speed.None;
+            else
+            {
+                Config.Fan.CurrentSpeed = Fan.Speed.Percent_100;
+            }
         }
 
         private static void ResetLidOpenResumeCountdown()

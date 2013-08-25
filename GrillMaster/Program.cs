@@ -22,6 +22,8 @@ namespace GrillMaster
         public static long Elapsed { get { return CurrentTime - LastActivity; } }
         public static long TotalElapsed { get { return CurrentTime - StartTime; } }
 
+        private static bool _hasWelcomeShown = false;
+
         // This method is run when the mainboard is powered up or reset.   
         void ProgramStarted()
         {
@@ -45,8 +47,23 @@ namespace GrillMaster
             timer.Start();
         }
 
+        bool speedtestdone = false;
+
         void timer_Tick(GT.Timer timer)
         {
+            if (!_hasWelcomeShown)
+            {
+                _hasWelcomeShown = true;
+                Menu.SetState(MenuState.Welcome);
+            }
+
+            if (!speedtestdone)
+            {
+                speedtestdone = true;
+                Menu.SpeedTest();
+                Menu.SetState(MenuState.ShowTemps);
+            }
+
             Menu.DoWork();
             if (GrillController.DoWork())
                 Menu.UpdateScreen();
@@ -55,13 +72,12 @@ namespace GrillMaster
         void Initialize()
         {
             Config.SetupLcd(display_HD44780);
-            Config.Thermocouple1 = thermocouple;
+            Config.SetupThemocouple(thermocouple);
             Config.Initialize();
             BlinkLed(); //boot completed
 
             StartTime = CurrentTime;
             GrillController.Initialize();
-            Menu.SetState(MenuState.Welcome);
 
             BlinkLed(); //initialize completed
         }

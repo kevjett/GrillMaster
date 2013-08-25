@@ -4,19 +4,18 @@ using Gadgeteer.Modules.GHIElectronics;
 
 namespace GrillMaster
 {
-    public class GadgeteerProbe : Probe, IProbe
+    public class GadgeteerProbe : IProbe
     {
         private Thermocouple _thermocouple;
 
-        public GadgeteerProbe(string name, Config.ProbeType probeType, int startingTargetTemp, Thermocouple thermocouple)
-            : base(name, probeType, startingTargetTemp)
+        public GadgeteerProbe(Thermocouple thermocouple)
         {
             _thermocouple = thermocouple;
         }
 
-        public override double GetTemp()
+        public double CurrentTemp
         {
-            return _thermocouple.GetExternalTemp_Fahrenheit();
+            get { return _thermocouple.GetExternalTemp_Fahrenheit(); }
         }
     }
 }
