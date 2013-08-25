@@ -52,12 +52,12 @@ namespace GrillMaster
         {
             Pins.ProbePit = new AnalogInput(FEZCerbuino.Pin.AnalogIn.A0);
             Pins.ProbeFood1 = new AnalogInput(FEZCerbuino.Pin.AnalogIn.A1);
-            Pins.Buttons = new AnalogInput(FEZCerbuino.Pin.AnalogIn.A2);
+            Pins.Buttons = new AnalogInput(FEZCerbuino.Pin.AnalogIn.A3);
             //Pins.Fan = new OutputPort(FEZCerbuino.Pin.Digital.D6, false);
             //Pins.OnboardLed = new OutputPort(FEZCerbuino.Pin.Digital.LED1, false);
             //Pins.Fan = new PWM(, 50000, 0.0, false);
             //FEZCerbuino.Pin.PWM.D0
-            Fan = new Fan(FEZCerbuino.Pin.PWM.D0);
+            Fan = new Fan(FEZCerbuino.Pin.PWM.A2);
 
             Probes = new Hashtable() {
                 { ProbeType.Pit, new ProbeController(new PinProbe(Pins.ProbePit, PinProbe.ProbeModel.Maverick), "Pit", ProbeType.Pit, DefaultPitTemp)},

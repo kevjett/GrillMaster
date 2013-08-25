@@ -38,20 +38,26 @@ namespace GrillMaster
         public enum Frequency : int
         {
             None = 0,
+            kHz_10 = 10000,
             kHz_20 = 20000,
             kHz_25 = 25000,
             kHz_30 = 30000,
             kHz_50 = 50000
         }; 
 
-        private Speed duty = Speed.None; 
-        private PWM pwm = null; 
-        private double frequency = (double)Frequency.kHz_50; 
+        private Speed speed = Speed.None; 
+        private PWM pwm = null;
+        private double frequency = (double)Frequency.None; 
         private Cpu.PWMChannel pwmChannel = Cpu.PWMChannel.PWM_0;
+
+        public double Duty
+        {
+            get { return ((double)this.speed / 100); }
+        }
 
         public Speed CurrentSpeed
         {
-            get { return this.duty; }
+            get { return this.speed; }
             set { SetSpeed(value); }
         }
 
@@ -63,14 +69,16 @@ namespace GrillMaster
         public Fan(Cpu.PWMChannel pin)
         {
             this.pwmChannel = pin;
-            this.duty = Speed.None;
-            this.frequency = (double)Frequency.kHz_50; 
+            this.speed = Speed.None;
+            this.frequency = (double)Frequency.kHz_10; 
             Start();
         }
 
+
+
         public void Start()
         {
-            pwm = new PWM(pwmChannel, frequency, (double)duty, false);
+            pwm = new PWM(pwmChannel, frequency, Duty, false);
             pwm.Start();
         }
 
@@ -85,10 +93,10 @@ namespace GrillMaster
             var s = (int)speed;
             if ((s >= 0) && (s <= 100))
             {
-                this.duty = speed;
-                this.pwm.DutyCycle = (double)this.duty;
+                this.speed = speed;
+                this.pwm.DutyCycle = Duty;
             }
-            return this.duty;
+            return this.speed;
         }
 
         public void Dispose()
