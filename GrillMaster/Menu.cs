@@ -245,15 +245,19 @@ namespace GrillMaster
             Config.Lcd.CursorHome();
             Config.Lcd.PrintString("Fan Speed Test");
 
+            //Config.Fan.CurrentSpeed = Fan.Speed.Fast;
+            //Thread.Sleep(500);
+            Config.Fan.CurrentSpeed = Fan.Speed.Percent_40;
+            Thread.Sleep(100);
             Config.Fan.CurrentSpeed = Fan.Speed.Percent_10;
             Config.Lcd.SetCursor(0, 1);
             Config.Lcd.PrintString("10%");
-            Thread.Sleep(5000);
+            Thread.Sleep(10000);
 
             Config.Fan.CurrentSpeed = Fan.Speed.Percent_20;
             Config.Lcd.SetCursor(0, 1);
             Config.Lcd.PrintString("20%");
-            Thread.Sleep(5000);
+            Thread.Sleep(10000);
 
             Config.Fan.CurrentSpeed = Fan.Speed.Percent_30;
             Config.Lcd.SetCursor(0, 1);
