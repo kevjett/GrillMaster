@@ -45,6 +45,8 @@ namespace GrillMaster
         {
             Button button = ReadButton();
 
+            return;
+
             //return; //notdone
             //if (Program.Elapsed < 25)
             //    return;

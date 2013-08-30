@@ -38,7 +38,7 @@ namespace GrillMaster
         }
 
         public static ILcd Lcd;
-        private static Thermocouple _thermocouple1;
+        private static Thermocouple _thermocouple;
         public static Fan Fan;
         public static PinButton Buttons;
 
@@ -60,7 +60,7 @@ namespace GrillMaster
             Fan = new Fan(FEZCerbuino.Pin.PWM.A2);
 
             Probes = new Hashtable() {
-                { ProbeType.Pit, new ProbeController(new PinProbe(Pins.ProbePit, PinProbe.ProbeModel.Maverick), "Pit", ProbeType.Pit, DefaultPitTemp)},
+                { ProbeType.Pit, new ProbeController(new GadgeteerProbe(_thermocouple), "Pit", ProbeType.Pit, DefaultPitTemp)},
                 { ProbeType.Food1, new ProbeController(new PinProbe(Pins.ProbeFood1, PinProbe.ProbeModel.Maverick), "Food", ProbeType.Food1, DefaultFoodTemp) }
             };
 
@@ -112,7 +112,7 @@ namespace GrillMaster
 
         internal static void SetupThemocouple(Thermocouple thermocouple)
         {
-            _thermocouple1 = thermocouple;
+            _thermocouple = thermocouple;
         }
     }
 }

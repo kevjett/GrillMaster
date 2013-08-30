@@ -57,12 +57,12 @@ namespace GrillMaster
                 Menu.SetState(MenuState.Welcome);
             }
 
-            if (!speedtestdone)
-            {
-                speedtestdone = true;
-                Menu.SpeedTest();
-                Menu.SetState(MenuState.ShowTemps);
-            }
+            //if (!speedtestdone)
+            //{
+            //    speedtestdone = true;
+            //    Menu.SpeedTest();
+            //    Menu.SetState(MenuState.ShowTemps);
+            //}
 
             Menu.DoWork();
             if (GrillController.DoWork())
