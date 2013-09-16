@@ -43,6 +43,7 @@ namespace GrillMaster
         {
             ReadTemp();
             CalculateTemp();
+            //CalcTemp2();
             return TemperatureF;
         }
 
@@ -53,6 +54,7 @@ namespace GrillMaster
             for (int i = 0; i < sampleCount; i++)
             {
                 var adc = _input.ReadRaw();
+                Debug.Print("Probe Read:" + adc.ToString());
                 if (adc == 0 || adc >= 4095)
                 {
                     addAdcValue(0);
@@ -101,6 +103,34 @@ namespace GrillMaster
             {
                 CalcExpMovingAverage((1.0f / 20.0f), TemperatureFAvg, TemperatureF);
             }
+        }
+
+        private void CalcTemp2()
+        {
+            TemperatureF = thermister_temp(_input.ReadRaw());
+        }
+
+        private int thermister_temp(int aval)
+        {
+            double R, T;
+
+            Debug.Print("Probe Read:" + aval.ToString());
+            // These were calculated from the thermister data sheet
+            //	A = 2.3067434E-4;
+            //	B = 2.3696596E-4;
+            //	C = 1.2636414E-7;
+            //
+            // This is the value of the other half of the voltage divider
+            //	Rknown = 22200;
+
+            // Do the log once so as not to do it 4 times in the equation
+            //	R = log(((1024/(double)aval)-1)*(double)22200);
+            R = System.Math.Log((1 / ((4096 / (double)aval) - 1)) * (double)15000);
+            //lcd.print("A="); lcd.print(aval); lcd.print(" R="); lcd.print(R);
+            // Compute degrees C
+            T = (1 / ((_steinhart[0]) + (_steinhart[1]) * R + (_steinhart[2]) * R * R * R)) - 273.25;
+            // return degrees F
+            return ((int)((T * 9.0) / 5.0 + 32.0));
         }
 
         private void CalcExpMovingAverage(float smoothing, double currentAvg, double newTemp)

@@ -68,7 +68,7 @@ namespace GrillMaster
                 _buttonDepressedElapsed = Program.CurrentTime - _buttonDepressedTime;
             }
 
-            Debug.Print("Button Pushed:" + button.ToString());
+            //Debug.Print("Button Pushed:" + button.ToString());
 
             Program.UpdateLastActivity();
 
@@ -85,8 +85,8 @@ namespace GrillMaster
             //see if the user has pushed a button
             var buttonRead = Config.Buttons.Read() >> 2;
 
-            if (buttonRead > 10)
-                Debug.Print("Button Read:" + buttonRead);
+            //if (buttonRead >= 100)
+            //    Debug.Print("Button Read:" + buttonRead);
 
             if (buttonRead >= 130 && buttonRead <= 150)
                 return Button.Up;
